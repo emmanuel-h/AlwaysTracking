@@ -1,0 +1,10 @@
+## Interface: 16001
+## Title: Always Tracking
+## Notes: Keeps your gathering tracking (Find Herbs by default) on: checks it every few minutes and turns it back on after you are resurrected.
+## Author: emmanuel-h
+## Version: @project-version@
+## Category: Professions
+## IconTexture: Interface\Icons\INV_Misc_Flower_02
+## SavedVariables: AlwaysTrackingDB
+
+AlwaysTracking.lua
