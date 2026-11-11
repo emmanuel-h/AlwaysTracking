@@ -6,5 +6,6 @@
 ## Category: Professions
 ## IconTexture: Interface\Icons\INV_Misc_Flower_02
 ## SavedVariables: AlwaysTrackingDB
+## X-License: MIT
 
 AlwaysTracking.lua

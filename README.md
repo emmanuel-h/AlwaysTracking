@@ -33,3 +33,7 @@ Link the repository into the game's AddOns folder so changes show up after a `/r
 ```powershell
 New-Item -ItemType Junction -Path "C:\Program Files (x86)\World of Warcraft\_forever_\Interface\AddOns\AlwaysTracking" -Target "E:\Projects\AlwaysTracking"
 ```
+
+## License
+
+MIT
