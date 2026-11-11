@@ -46,10 +46,8 @@ New-Item -ItemType Junction -Path "C:\Program Files (x86)\World of Warcraft\_for
 
 ## Releasing
 
-Push a tag such as `v1.0.0`. The release workflow packages the addon with the
-[BigWigs packager](https://github.com/BigWigsMods/packager), uploads it to CurseForge and attaches
-the zip to a GitHub release. The CurseForge upload needs the `CF_API_TOKEN` repository secret and
-the `X-Curse-Project-ID` line in the toc.
+Pushing a version tag such as `v1.1.0` publishes the addon to CurseForge and GitHub. See
+[RELEASING.md](RELEASING.md) for the steps, the setup and what to do when a release fails.
 
 ## License
 
