@@ -8,11 +8,18 @@ A WoW Forever addon that keeps your gathering tracking on.
 - Stays off in battlegrounds and arenas.
 - Leaves another tracking you picked yourself alone (unless override is on).
 
+## Options
+
+Type `/at options` or open Options > AddOns > Always Tracking. The panel sets the tracking to keep on,
+how often to check, how long to wait after resurrection, whether to replace another tracking, and
+the chat message.
+
 ## Commands
 
 | Command | What it does |
 | --- | --- |
 | `/at` | Show status |
+| `/at options` | Open the options panel |
 | `/at on` / `/at off` | Turn the addon on or off |
 | `/at track <herbs\|minerals\|treasure\|fish>` | Choose which tracking to keep on |
 | `/at interval <minutes>` | How often to check (1-60) |

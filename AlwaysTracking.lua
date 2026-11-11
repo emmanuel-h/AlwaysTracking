@@ -226,12 +226,83 @@ local function InitDB()
   if not TRACKERS[db.tracker] then db.tracker = DEFAULTS.tracker end
 end
 
+-- Options panel, in the game's Options > AddOns. Every control is a proxy over db, so the panel
+-- and the slash commands change the same saved values.
+local settingsCategory
+
+local function AddSetting(key, name, onChange)
+  local setting = Settings.RegisterProxySetting(settingsCategory, "ALWAYS_TRACKING_" .. strupper(key),
+    type(DEFAULTS[key]), name, DEFAULTS[key],
+    function() return db[key] end,
+    function(value)
+      db[key] = value
+      if onChange then onChange() end
+    end)
+  return setting
+end
+
+local function AddSlider(key, name, minimum, maximum, unit, tooltip, onChange)
+  local options = Settings.CreateSliderOptions(minimum, maximum, 1)
+  options:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right, function(value)
+    return value .. " " .. unit
+  end)
+  Settings.CreateSlider(settingsCategory, AddSetting(key, name, onChange), options, tooltip)
+end
+
+local function TrackerOptions()
+  local container = Settings.CreateControlTextContainer()
+  for _, key in ipairs(TRACKER_ORDER) do container:Add(key, TRACKERS[key].label) end
+  return container:GetData()
+end
+
+local function RegisterOptions()
+  if not (Settings and Settings.RegisterVerticalLayoutCategory) then return end
+  settingsCategory = Settings.RegisterVerticalLayoutCategory("Always Tracking")
+
+  local function Recheck() Check("manual") end
+
+  Settings.CreateCheckbox(settingsCategory, AddSetting("enabled", "Enabled", Recheck),
+    "Keep the chosen tracking on.")
+  Settings.CreateDropdown(settingsCategory, AddSetting("tracker", "Tracking", Recheck), TrackerOptions,
+    "Which tracking to keep on.")
+  AddSlider("interval", "Check Every", 1, 60, "min",
+    "How often to check that the tracking is still on.", StartTicker)
+  AddSlider("rezDelay", "Wait After Resurrection", 0, 120, "sec",
+    "Time to buff up after a resurrection before the tracking cast takes the global cooldown.")
+  Settings.CreateCheckbox(settingsCategory, AddSetting("override", "Replace Other Tracking", Recheck),
+    "Also turn the chosen tracking on when you picked another one yourself.")
+  Settings.CreateCheckbox(settingsCategory, AddSetting("verbose", "Chat Message"),
+    "Say so in chat when the tracking is turned back on.")
+
+  Settings.RegisterAddOnCategory(settingsCategory)
+end
+
+local waitingForCombat = false
+
+-- The settings panel can't open in combat, so a request made then waits for it to end.
+local function OpenOptions()
+  if not settingsCategory then return end
+  if InCombatLockdown() then
+    Print("the options open after combat.")
+    if not waitingForCombat then
+      waitingForCombat = true
+      EventUtil.RegisterOnceFrameEventAndCallback("PLAYER_REGEN_ENABLED", function()
+        waitingForCombat = false
+        OpenOptions()
+      end)
+    end
+    return
+  end
+  Settings.OpenToCategory(settingsCategory:GetID())
+end
+
 local events = CreateFrame("Frame")
 events:RegisterEvent("PLAYER_LOGIN")
 events:SetScript("OnEvent", function(_, event, ...)
   if event == "PLAYER_LOGIN" then
     InitDB()
     StartTicker()
+    RegisterOptions()
     events:RegisterEvent("PLAYER_ENTERING_WORLD")
     events:RegisterEvent("PLAYER_ALIVE")
     events:RegisterEvent("PLAYER_UNGHOST")
@@ -267,6 +338,7 @@ end
 local function PrintHelp()
   Print("commands:")
   Print("  /at - status")
+  Print("  /at options - open the options panel")
   Print("  /at on | off - turn the addon on or off")
   Print("  /at track <" .. table.concat(TRACKER_ORDER, "|") .. "> - which tracking to keep on")
   Print("  /at interval <minutes> - how often to check (1-60)")
@@ -282,6 +354,8 @@ SlashCmdList.ALWAYSTRACKING = function(input)
   local cmd, arg = strtrim(input or ""):lower():match("^(%S*)%s*(.-)$")
   if cmd == "" or cmd == "status" then
     PrintStatus()
+  elseif cmd == "options" or cmd == "config" then
+    OpenOptions()
   elseif cmd == "on" or cmd == "off" then
     db.enabled = cmd == "on"
     Check("manual")
