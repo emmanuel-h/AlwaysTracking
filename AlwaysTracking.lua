@@ -82,12 +82,18 @@ local function OnCooldown(spellID)
   return cooldown and cooldown.isActive
 end
 
+local function InPvPInstance()
+  local _, instanceType = IsInInstance()
+  return instanceType == "pvp" or instanceType == "arena"
+end
+
 -- Why tracking can't be turned on right now. A lasting reason needs the player to change
--- something; a passing one is retried until it clears.
+-- something, or zoning checks again; a passing one is retried until it clears.
 local function WaitReason(wanted, active)
   if not wanted then return "this character doesn't know " .. Tracker().label, true end
   if active and not db.override then return (active.name or "another tracking") .. " is on", true end
   if blocked then return "Blizzard blocks it until you /reload", true end
+  if InPvPInstance() then return "in a battleground or arena", true end
   if InCombatLockdown() or UnitAffectingCombat("player") then return "in combat" end
   if UnitIsDeadOrGhost("player") then return "dead" end
   if UnitOnTaxi("player") then return "on a flight" end

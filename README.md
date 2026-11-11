@@ -5,6 +5,7 @@ A WoW Forever addon that keeps your gathering tracking on.
 - Checks every 5 minutes (configurable) and turns **Find Herbs** back on if no tracking is active.
 - Turns it back on right after you are resurrected, and after login or `/reload`.
 - Waits out combat, casting, flights and the global cooldown, then retries.
+- Stays off in battlegrounds and arenas.
 - Leaves another tracking you picked yourself alone (unless override is on).
 
 ## Commands
