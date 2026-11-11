@@ -10,7 +10,8 @@ A WoW Forever addon that keeps your gathering tracking on.
 
 ## Options
 
-Type `/at options` or open Options > AddOns > Always Tracking. The panel sets the tracking to keep on,
+Click **Always Tracking** in the addon compartment (the button at the top of the minimap), type
+`/at options`, or open Options > AddOns > Always Tracking. The panel sets the tracking to keep on,
 how often to check, how long to wait after resurrection, whether to replace another tracking, and
 the chat message.
 

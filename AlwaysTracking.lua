@@ -296,6 +296,24 @@ local function OpenOptions()
   Settings.OpenToCategory(settingsCategory:GetID())
 end
 
+-- Entry in the addon compartment at the top of the minimap, listed in the toc.
+function AlwaysTracking_OnAddonCompartmentClick()
+  OpenOptions()
+end
+
+function AlwaysTracking_OnAddonCompartmentEnter(_, button)
+  GameTooltip:SetOwner(button, "ANCHOR_LEFT")
+  GameTooltip:SetText("Always Tracking")
+  GameTooltip:AddLine(db.enabled and Tracker().label or "Disabled", 1, 1, 1)
+  GameTooltip:AddLine(status, 0.8, 0.8, 0.8, true)
+  GameTooltip:AddLine("Click to open the options.", 0, 1, 0)
+  GameTooltip:Show()
+end
+
+function AlwaysTracking_OnAddonCompartmentLeave()
+  GameTooltip:Hide()
+end
+
 local events = CreateFrame("Frame")
 events:RegisterEvent("PLAYER_LOGIN")
 events:SetScript("OnEvent", function(_, event, ...)

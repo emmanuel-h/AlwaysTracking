@@ -8,5 +8,8 @@
 ## SavedVariables: AlwaysTrackingDB
 ## X-License: MIT
 ## X-Website: https://github.com/emmanuel-h/AlwaysTracking
+## AddonCompartmentFunc: AlwaysTracking_OnAddonCompartmentClick
+## AddonCompartmentFuncOnEnter: AlwaysTracking_OnAddonCompartmentEnter
+## AddonCompartmentFuncOnLeave: AlwaysTracking_OnAddonCompartmentLeave
 
 AlwaysTracking.lua
