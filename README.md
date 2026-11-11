@@ -34,6 +34,13 @@ Link the repository into the game's AddOns folder so changes show up after a `/r
 New-Item -ItemType Junction -Path "C:\Program Files (x86)\World of Warcraft\_forever_\Interface\AddOns\AlwaysTracking" -Target "E:\Projects\AlwaysTracking"
 ```
 
+## Releasing
+
+Push a tag such as `v1.0.0`. The release workflow packages the addon with the
+[BigWigs packager](https://github.com/BigWigsMods/packager), uploads it to CurseForge and attaches
+the zip to a GitHub release. The CurseForge upload needs the `CF_API_TOKEN` repository secret and
+the `X-Curse-Project-ID` line in the toc.
+
 ## License
 
 MIT
