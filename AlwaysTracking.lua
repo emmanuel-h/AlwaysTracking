@@ -14,6 +14,7 @@ local DEFAULTS = {
   enabled = true,
   tracker = "herbs",
   interval = 5,      -- minutes between checks
+  rezDelay = 10,     -- seconds to wait after resurrection, time to buff up
   override = false,  -- also replace another tracking that is on
   verbose = true,    -- say so in chat when tracking is turned back on
 }
@@ -22,7 +23,6 @@ local RETRY = 2            -- seconds between retries while a check waits (comba
 local VERIFY = 1.5         -- seconds after SetTracking before checking that it took
 local MISSES_TO_INPUT = 2  -- timed attempts that silently fail before moving to key press mode
 local LOGIN_DELAY = 3
-local RESURRECT_DELAY = 1
 
 -- Blizzard's movement and click bindings. If the client refuses SetTracking from a timer, the
 -- attempt waits for the next of these, where the player's own key press or click allows it.
@@ -40,6 +40,7 @@ local verifying = false  -- waiting to see whether the last call took
 local inputMode = false  -- timed calls are refused: act on the player's next key press
 local blocked = false    -- refused on key presses too: give up until /reload
 local misses = 0
+local resurrectedAt = -math.huge
 local status = "starting"
 
 local function Print(msg)
@@ -88,14 +89,16 @@ local function InPvPInstance()
 end
 
 -- Why tracking can't be turned on right now. A lasting reason needs the player to change
--- something, or zoning checks again; a passing one is retried until it clears.
+-- something, or an event (zoning, resurrection) checks again; a passing one is retried until it
+-- clears.
 local function WaitReason(wanted, active)
   if not wanted then return "this character doesn't know " .. Tracker().label, true end
   if active and not db.override then return (active.name or "another tracking") .. " is on", true end
   if blocked then return "Blizzard blocks it until you /reload", true end
   if InPvPInstance() then return "in a battleground or arena", true end
+  if UnitIsDeadOrGhost("player") then return "dead", true end
+  if GetTime() - resurrectedAt < db.rezDelay then return "just resurrected" end
   if InCombatLockdown() or UnitAffectingCombat("player") then return "in combat" end
-  if UnitIsDeadOrGhost("player") then return "dead" end
   if UnitOnTaxi("player") then return "on a flight" end
   if IsCasting() then return "casting" end
   if OnCooldown(wanted.spellID) then return "on cooldown" end
@@ -238,8 +241,11 @@ events:SetScript("OnEvent", function(_, event, ...)
   elseif event == "PLAYER_ENTERING_WORLD" then
     C_Timer.After(LOGIN_DELAY, function() Check("login") end)
   elseif event == "PLAYER_ALIVE" or event == "PLAYER_UNGHOST" then
-    -- PLAYER_ALIVE also fires on releasing the spirit, while still a ghost; Check waits that out.
-    C_Timer.After(RESURRECT_DELAY, function() Check("resurrect") end)
+    -- PLAYER_ALIVE also fires on releasing the spirit, while still a ghost; PLAYER_UNGHOST follows.
+    if not UnitIsDeadOrGhost("player") then
+      resurrectedAt = GetTime()
+      C_Timer.After(db.rezDelay, function() Check("resurrect") end)
+    end
   elseif event == "PLAYER_REGEN_ENABLED" then
     if pending then Check("combat") end
   else
@@ -264,6 +270,7 @@ local function PrintHelp()
   Print("  /at on | off - turn the addon on or off")
   Print("  /at track <" .. table.concat(TRACKER_ORDER, "|") .. "> - which tracking to keep on")
   Print("  /at interval <minutes> - how often to check (1-60)")
+  Print("  /at rezdelay <seconds> - wait after resurrection before tracking (0-120)")
   Print("  /at now - check right away")
   Print("  /at override - also replace another tracking that is on")
   Print("  /at quiet - toggle the chat message when tracking is turned back on")
@@ -295,6 +302,14 @@ SlashCmdList.ALWAYSTRACKING = function(input)
       PrintStatus()
     else
       Print("the interval is a number of minutes from 1 to 60.")
+    end
+  elseif cmd == "rezdelay" then
+    local seconds = tonumber(arg)
+    if seconds and seconds >= 0 and seconds <= 120 then
+      db.rezDelay = math.floor(seconds)
+      Print("after resurrection, tracking waits " .. db.rezDelay .. " seconds.")
+    else
+      Print("the resurrection delay is a number of seconds from 0 to 120.")
     end
   elseif cmd == "now" then
     -- Typing the command is itself a key press, so this works even in key press mode.
